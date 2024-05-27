@@ -1,0 +1,29 @@
+name: CI using github actions & docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker Image
+        run: |
+          docker build -t cyoobin/docker-react-app -f Dockerfile.dev .
+
+      - name: Run tests
+        run: |
+          docker run -e CI=true cyoobin/docker-react-app npm run test -- --coverage
+
+      - name: Test Success
+        if: success()
+        run: echo "Test Success"
