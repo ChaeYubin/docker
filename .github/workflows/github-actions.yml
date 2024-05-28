@@ -11,10 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: actions/checkout@v3
 
       - name: Build Docker Image
         run: |
@@ -28,4 +25,17 @@ jobs:
         if: success()
         run: echo "Test Success"
 
-  # deploy:
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: docker-react-test
+          environment_name: Docker-react-test-env
+          existing_bucket_name: elasticbeanstalk-ap-northeast-2-292745245601
+          region: ap-northeast-2
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
